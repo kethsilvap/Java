@@ -1,0 +1,51 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+input {
+  padding: 8px;
+  width: 250px;
+}
+
+button {
+  padding: 8px 15px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+ul {
+  list-style: none;
+  max-width: 400px;
+  margin: auto;
+  padding: 0;
+}
+
+li {
+  background: #fff;
+  padding: 10px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.concluida {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.nao-concluida {
+  color: black;
+}
