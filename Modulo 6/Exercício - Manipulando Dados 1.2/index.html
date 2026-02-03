@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lista de Tarefas</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; }
+    .row { display: flex; gap: 8px; margin-bottom: 16px; }
+    input { flex: 1; padding: 10px; font-size: 14px; }
+    button { padding: 10px 14px; cursor: pointer; }
+    #msg { margin: 10px 0; font-weight: bold; }
+
+    ul { list-style: none; padding: 0; margin: 0; }
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .left { display: flex; align-items: center; gap: 10px; }
+
+    /* Estilo das descrições conforme status */
+    .descricao {
+      font-size: 14px;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .concluida .descricao {
+      text-decoration: line-through;
+      opacity: 0.65;
+    }
+
+    .nao-concluida .descricao {
+      font-weight: 600;
+    }
+
+    .btn-excluir {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Lista de Tarefas</h2>
+
+  <div class="row">
+    <input id="descricaoInput" type="text" placeholder="Digite a descrição da tarefa" />
+    <button id="btnAdicionar">Adicionar</button>
+  </div>
+
+  <div id="msg"></div>
+  <ul id="lista"></ul>
+
+  <script>
+    const descricaoInput = document.getElementById("descricaoInput");
+    const btnAdicionar = document.getElementById("btnAdicionar");
+    const listaEl = document.getElementById("lista");
+    const msgEl = document.getElementById("msg");
+
+    const STORAGE_KEY = "tarefas";
+
+    // ✅ Carrega tarefas do localStorage (ou array vazio)
+    let tarefas = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    function salvarLocalStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tarefas));
+    }
+
+    function setMsg(texto) {
+      msgEl.textContent = texto;
+    }
+
+    function renderizar() {
+      listaEl.innerHTML = "";
+
+      if (tarefas.length === 0) {
+        setMsg("Nenhuma tarefa cadastrada.");
+        return;
+      }
+
+      setMsg(`Total de tarefas: ${tarefas.length}`);
+
+      tarefas.forEach((tarefa, index) => {
+        const li = document.createElement("li");
+        li.className = tarefa.status ? "concluida" : "nao-concluida";
+
+        const left = document.createElement("div");
+        left.className = "left";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = tarefa.status;
+
+        // Alterna status ao clicar no checkbox
+        checkbox.addEventListener("change", () => {
+          tarefas[index].status = checkbox.checked;
+          salvarLocalStorage();
+          renderizar();
+        });
+
+        const span = document.createElement("span");
+        span.className = "descricao";
+        span.textContent = tarefa.descricao;
+
+        left.appendChild(checkbox);
+        left.appendChild(span);
+
+        // Botão excluir ao lado de cada tarefa
+        const btnExcluir = document.createElement("button");
+        btnExcluir.className = "btn-excluir";
+        btnExcluir.textContent = "Excluir";
+
+        btnExcluir.addEventListener("click", () => {
+          tarefas.splice(index, 1);
+          salvarLocalStorage();
+          renderizar();
+        });
+
+        li.appendChild(left);
+        li.appendChild(btnExcluir);
+        listaEl.appendChild(li);
+      });
+    }
+
+    function adicionarTarefa() {
+      const desc = descricaoInput.value.trim();
+
+      if (!desc) {
+        setMsg("Digite uma descrição válida.");
+        return;
+      }
+
+      // Inicializa status como false (Não concluído)
+      tarefas.push({ descricao: desc, status: false });
+
+      salvarLocalStorage();
+      renderizar();
+
+      descricaoInput.value = "";
+      descricaoInput.focus();
+    }
+
+    btnAdicionar.addEventListener("click", adicionarTarefa);
+
+    // Renderiza ao abrir/recarregar
+    renderizar();
+  </script>
+</body>
+</html>
