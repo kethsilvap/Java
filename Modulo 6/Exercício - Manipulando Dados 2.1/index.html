@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Busca de Usuários - GitHub</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; }
+    .row { display: flex; gap: 8px; margin-bottom: 16px; }
+    input { flex: 1; padding: 10px; font-size: 14px; }
+    button { padding: 10px 14px; cursor: pointer; }
+    #status { margin: 10px 0; font-weight: bold; }
+    ul { list-style: none; padding: 0; }
+    li { display: flex; gap: 12px; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; }
+    img { width: 48px; height: 48px; border-radius: 50%; }
+    .meta { display: flex; flex-direction: column; gap: 2px; }
+    a { text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h2>Buscar usuários do GitHub</h2>
+
+  <div class="row">
+    <input id="busca" type="text" placeholder="Digite um nome de usuário (ex: octocat)"/>
+    <button id="btnBuscar">Buscar</button>
+  </div>
+
+  <div id="status"></div>
+  <ul id="lista"></ul>
+
+  <script>
+    const inputBusca = document.getElementById("busca");
+    const btnBuscar = document.getElementById("btnBuscar");
+    const statusEl = document.getElementById("status");
+    const listaEl = document.getElementById("lista");
+
+    function limparLista() {
+      listaEl.innerHTML = "";
+    }
+
+    function setStatus(msg) {
+      statusEl.textContent = msg;
+    }
+
+    function renderUsuarios(usuarios) {
+      limparLista();
+
+      usuarios.forEach(u => {
+        const li = document.createElement("li");
+
+        const avatar = document.createElement("img");
+        avatar.src = u.avatar_url;
+        avatar.alt = `Avatar de ${u.login}`;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+
+        const nome = document.createElement("strong");
+        nome.textContent = u.login;
+
+        const link = document.createElement("a");
+        link.href = u.html_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Ver perfil";
+
+        const score = document.createElement("small");
+        score.textContent = `Score: ${u.score?.toFixed(2) ?? "N/A"}`;
+
+        meta.appendChild(nome);
+        meta.appendChild(link);
+        meta.appendChild(score);
+
+        li.appendChild(avatar);
+        li.appendChild(meta);
+        listaEl.appendChild(li);
+      });
+    }
+
+    async function buscarUsuarios() {
+      const termo = inputBusca.value.trim();
+
+      if (!termo) {
+        setStatus("Digite algo para buscar.");
+        limparLista();
+        return;
+      }
+
+      setStatus("Buscando...");
+      limparLista();
+
+      try {
+        // Endpoint de busca de usuários
+        const url = `https://api.github.com/search/users?q=${encodeURIComponent(termo)}`;
+        const resp = await fetch(url);
+
+        if (!resp.ok) {
+          // 403 pode acontecer por rate limit sem token
+          throw new Error(`Erro HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        const usuarios = data.items || [];
+
+        if (usuarios.length === 0) {
+          setStatus("Não foram encontrados usuários para esta pesquisa");
+          return;
+        }
+
+        setStatus(`Encontrados: ${usuarios.length}`);
+        renderUsuarios(usuarios);
+
+      } catch (err) {
+        // Para não fugir do enunciado, mostramos mensagem amigável:
+        setStatus("Não foram encontrados usuários para esta pesquisa");
+        // (Opcional) console para debug:
+        console.error(err);
+      }
+    }
+
+    btnBuscar.addEventListener("click", buscarUsuarios);
+  </script>
+</body>
+</html>
